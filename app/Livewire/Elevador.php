@@ -1,5 +1,4 @@
 <?php
-// app/Livewire/Elevador.php
 
 namespace App\Livewire;
 
@@ -10,9 +9,13 @@ use Livewire\Component;
 
 class Elevador extends Component
 {
+    /** @var int */
     public int $capacidade = 10;
+
+    /** @var int|null */
     public ?int $inputAndar = null;
 
+    /** @var array<int, array{data:string, message:string, type:string, action:string}> */
     public array $logs = [];
 
     /**
