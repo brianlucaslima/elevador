@@ -9,6 +9,14 @@ it('permite inputAndar com valor negativo', function () {
         ->assertHasNoErrors(['inputAndar' => 'min']);
 });
 
+it('retorna mensagem de erro quando valor do inputAndar é negativo', function () {
+    \Livewire\Livewire::test(Elevador::class)
+        ->set('inputAndar', -1)
+        ->call('chamar')
+        ->assertSet('logs.0.type', 'error')
+        ->assertSet('logs.0.message', 'Andar inválido: -1. O andar deve ser maior ou igual a 0 para o térreo.');
+});
+
 it('enfileira chamados no state mantendo FIFO', function () {
     \Livewire\Livewire::test(Elevador::class)
         ->set('inputAndar', 3)
