@@ -1,59 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Elevador (FIFO) — Laravel 12 + Livewire 3
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Implementação do desafio do **Elevador com fila FIFO (First-In, First-Out)**.
 
-## About Laravel
+A fila representa os chamados de andares. O elevador processa os chamados **na ordem em que foram recebidos**, usando `SplQueue`.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Visão geral
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Domínio (DDD):** `app/Dominio/Elevador/Elevador.php`
+  - Implementa a regra de negócio do elevador usando `SplQueue`.
+- **UI (Livewire):** `app/Livewire/Elevador.php` + `resources/views/livewire/elevador.blade.php`
+  - Interface simples para chamar e mover o elevador.
+  - Mantém um *estado serializável* (`$elevadorState`) para sobreviver ao ciclo de hidratação do Livewire.
+- **CLI (Artisan):** `app/Console/Commands/ElevadorDemoCommand.php`
+  - Demonstração via terminal usando a classe de domínio.
+- **Tests (Pest):** `tests/Domain` e `tests/Feature/Livewire`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Requisitos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Docker + Docker Compose
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+> Alternativamente, dá para rodar localmente com PHP 8.2+, Composer e Node, mas este projeto já está preparado para subir com Docker.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Subindo o projeto com Docker
 
-### Premium Partners
+O container expõe:
+- App: http://localhost:8050
+- Vite (dev server): http://localhost:5173 (porta exposta no compose)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 1) Build + up
 
-## Contributing
+```bash
+docker compose up --build
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Na primeira execução, o entrypoint (`docker/start.sh`) faz automaticamente:
+- copia `.env.example` para `.env` se não existir
+- `composer install`
+- gera `APP_KEY`
+- prepara SQLite em `database/database.sqlite`
+- `npm install`
+- `npm run build`
+- inicia `php artisan serve --host 0.0.0.0 --port 8050`
 
-## Code of Conduct
+### 2) Acessar
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Abra:
+- http://localhost:8050
 
-## Security Vulnerabilities
+### 3) Parar
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+docker compose down
+```
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Executando comandos dentro do container
+
+Para executar comandos Artisan, Composer ou Pest dentro do container:
+
+```bash
+docker compose exec app bash
+```
+
+A partir desse shell, você pode rodar os comandos abaixo.
+
+---
+
+## Rodando testes (Pest)
+
+Este projeto usa **Pest** com Laravel.
+
+### Rodar todo o suite
+
+```bash
+php artisan test
+```
+
+### Rodar apenas testes de domínio
+
+```bash
+php artisan test --testsuite=Domain
+```
+
+### Rodar apenas Livewire/Feature
+
+```bash
+php artisan test --testsuite=Feature
+```
+
+Arquivos principais:
+- `tests/Domain/Elevador/ElevadorTest.php` (regras FIFO, validações, clone da fila)
+- `tests/Feature/Livewire/ElevadorTest.php` (estado serializável + logs no componente)
+
+---
+
+## Demo via Artisan (CLI)
+
+Existe um comando para demonstrar o funcionamento do elevador no terminal:
+
+- **Command:** `elevador:demo`
+- **Opção obrigatória no desafio:** `--capacidade`
+
+Exemplo (capacidade 10):
+
+```bash
+php artisan elevador:demo --capacidade=10
+```
+
+O comando:
+- instancia `App\Dominio\Elevador\Elevador`
+- gera chamadas aleatórias
+- processa a fila em FIFO chamando `mover()` até esvaziar
+
+Código: `app/Console/Commands/ElevadorDemoCommand.php`
+
+---
+
+## Fluxo no Livewire (UI Web)
+
+Rota principal:
+- `GET /` → `App\Livewire\Elevador` (ver `routes/web.php`)
+
+View:
+- `resources/views/livewire/elevador.blade.php`
+
+### Como o estado funciona (ponto importante)
+
+O Livewire **não mantém instâncias de objetos PHP** entre interações do usuário. Cada clique (`wire:click`) é uma nova requisição que reidrata o componente a partir de propriedades públicas serializáveis.
+
+Por isso, o componente mantém um “memento” serializável:
+
+- `public array $elevadorState = ['capacidade' => 10, 'andarAtual' => 0, 'filaChamados' => []];`
+
+E a cada ação:
+
+1. **Reconstitui** o agregado do domínio (`reconstituirDominio()`), criando um `ElevadorDomain` e re-enfileirando os itens do estado.
+2. Executa a regra (ex.: `chamar()` ou `mover()`) no agregado.
+3. **Persiste de volta** no `elevadorState` (`persistirEstado()`), convertendo `SplQueue` para array.
+
+### Ações
+
+- **Chamar Elevador** (`chamar()`): valida entrada, chama `ElevadorDomain::chamar($andar)` e atualiza a fila.
+- **Mover Elevador** (`mover()`): chama `ElevadorDomain::mover()`, atualiza o andar atual e remove o próximo item da fila.
+
+### Logs
+
+O componente mantém um buffer simples de logs:
+- `public array $logs` (mantém apenas os 10 mais recentes)
+
+Isso é testado em `tests/Feature/Livewire/ElevadorTest.php`.
+
+---
+
+## Domínio (classe Elevador)
+
+Arquivo: `app/Dominio/Elevador/Elevador.php`
+
+Atributos:
+- `$filaChamados` (`SplQueue`) — garante FIFO
+- `$andarAtual` (inicia em `0`)
+- `$capacidade` (validada no construtor; não entra na lógica de movimento neste desafio)
+
+Métodos:
+- `__construct(int $capacidade)`
+- `chamar(int $andar)` (valida `andar >= 0`, enfileira)
+- `mover()` (dequeue + atualiza `andarAtual`)
+- `getAndarAtual(): int`
+- `getChamadosPendentes(): SplQueue` (retorna clone)
+
+---
+
+## Estrutura relevante
+
+- `app/Dominio/Elevador/Elevador.php`
+- `app/Console/Commands/ElevadorDemoCommand.php`
+- `app/Livewire/Elevador.php`
+- `resources/views/livewire/elevador.blade.php`
+- `docker-compose.yml`, `Dockerfile`, `docker/start.sh`
+- `tests/Domain/Elevador/ElevadorTest.php`
+- `tests/Feature/Livewire/ElevadorTest.php`
