@@ -102,7 +102,7 @@ class Elevador extends Component
     private function registraLog(string $type, string $action, string $message): void
     {
         array_unshift($this->logs, [
-            'data' => now()->format('d/m/y H:i:s'),
+            'data' => now('America/Sao_Paulo')->format('d/m/y H:i:s'),
             'message' => $message,
             'type' => $type,
             'action' => $action,
