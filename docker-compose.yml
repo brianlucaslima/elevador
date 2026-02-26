@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8050:8050"
+      - "5173:5173"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
