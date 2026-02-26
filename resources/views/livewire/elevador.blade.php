@@ -30,6 +30,7 @@
                 type="button"
                 class="mt-4 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
                 wire:click="chamar"
+                wire:loading.attr="disabled"
         >
             Chamar Elevador
         </button>
@@ -38,6 +39,7 @@
                 type="button"
                 class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 mt-2"
                 wire:click="mover"
+                wire:loading.attr="disabled"
         >
             Mover Elevador
         </button>
