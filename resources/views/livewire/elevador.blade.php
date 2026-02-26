@@ -4,7 +4,7 @@
     </h1>
 
     <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 ">
-        <x-dashboard-total-item label="Qtd. Chamadas" :value="count($filaChamados)" />
+        <x-dashboard-total-item label="Qtd. Chamados" :value="count($filaChamados)" />
         <x-dashboard-total-item label="Andar Atual" :value="$andarAtual" />
         <x-dashboard-total-item label="Capacidade Total" :value="$capacidade" />
     </div>
